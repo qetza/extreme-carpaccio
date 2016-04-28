@@ -1,47 +1,44 @@
 ﻿
-using System.IO;
-using System.Text;
+using System;
+using Nancy;
+using Nancy.ModelBinding;
 
 namespace xCarpaccio.client
 {
-    using Nancy;
-    using System;
-    using Nancy.ModelBinding;
-
     public class IndexModule : NancyModule
     {
         public IndexModule()
         {
             Post["/order"] = _ =>
             {
-                var request = RequestAsString();
+                var order = this.Bind<Order>();
+                var bill = HandleOrder(order);
+                if (bill == null)
+                {
+                    return new {};
+                }
 
-                Console.WriteLine("{0}", request);
-                return new {};
+                return bill;
             };
 
             Post["/feedback"] = _ =>
             {
                 var feedback = this.Bind<Feedback>();
                 HandleFeedback(feedback);
+
                 return Negotiate.WithStatusCode(HttpStatusCode.OK);
             };
         }
 
-        private string RequestAsString()
+        private Bill HandleOrder(Order order)
         {
-            string request;
-            using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
-            {
-                request = reader.ReadToEnd();
-            }
-            return request;
+            // return null if you do not what to return a total
+            return null;
         }
 
         private void HandleFeedback(Feedback feedback)
         {
-            Console.Write("Type: {0}: ", feedback.type);
-            Console.WriteLine(feedback.content);
+            Console.WriteLine($"Type: {feedback.type}: {feedback.content}");
         }        
     }
 }
